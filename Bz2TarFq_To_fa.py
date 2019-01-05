@@ -38,8 +38,12 @@ class Tarbz2File:
     sumASCII = sum(info[:148] + info[156:]) + 32 * 8
     checksum_str = info[148:156].strip(b' ').strip(b'\x00').decode()
     checksum = 0 if checksum_str=='' else int(checksum_str, 8)
+    size_field = info[124:136]
     if info[257:263].strip() == b'ustar' or checksum==sumASCII:
-      self.fsize = int(info[124:136].strip(b'\x00').decode(), 8)
+      if size_field.startswith(b'\x80'):
+        self.fsize = sum([j*pow(256,i) for i,j in enumerate(reversed(size_field[1:]))])
+      else:
+        self.fsize = int(size_field.strip(b'\x00').decode(), 8)
       self.fzero = 512 - self.fsize % 512
       return True
     else:
