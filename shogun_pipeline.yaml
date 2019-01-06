@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: shogun-pipeline-
+spec:
+  entrypoint: shogun-pipeline
+  onExit: exit-hander
+  volumes:
+  - name gluster-volumes-user
+    glusterfs:
+      endpoints: glusterfs-cluster
+      path: users
+      readOnly: false
+	arguments:
+	  parameters:
+		- name: 
