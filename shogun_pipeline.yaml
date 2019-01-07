@@ -14,7 +14,7 @@ spec:
   arguments:
     parameters:
     - name: samples
-      value: "/workdir/wangjianshou/pipeline/shogun/samples"
+      value: "/k11e/pvdisk/fastbase/Users/wangjianshou/pipeline/shogun/samples"
 
   templates:
   - name: shogun-pipeline
@@ -30,7 +30,9 @@ spec:
         arguments:
           parameters:
           - name: sample
-            value: "{{item}}"
+            value: "{{item.sample}}"
+          - name: outdir
+            value: "{{item.outdir}}"
         withParam: "{{steps.step-generate-samples.outputs.result}}"
 
   - name: generate-samples
@@ -43,14 +45,17 @@ spec:
       source: |
         import json
         import sys
+        from os.path import basename
         with open("{{inputs.parameters.samples-file}}", "rt") as f:
-          json.dump([i.strip() for i in f], sys.stdout)
+          #json.dump([i.strip() for i in f], sys.stdout)
+          r = [{'sample':i.strip(), 'outdir':basename(i.strip()).strip('.fa')} for i in f]
+        json.dump(r, sys.stdout)
       resources:
         requests:
-          CPU: 1
+          cpu: 1
           memory: 1Gi
         limits:
-          CPU: 1
+          cpu: 1
           memory: 1Gi
       volumeMounts:
         - name: gluster-volumes-user
@@ -60,6 +65,7 @@ spec:
     inputs:
       parameters:
         - name: sample
+        - name: outdir
     script:
       image: wangjianshou/shogun_ubuntu_18.04:miniconda_4.5.11
       command: [sh]
@@ -69,13 +75,13 @@ spec:
         . /opt/miniconda/etc/profile.d/conda.sh
         conda activate shogun
         python -m unittest discover shogun
-        shogun pipeline --no-function -a burst -i {{inputs.parameters.sample}} -d /k11e/pvdisk/fastbase/Users/wangjianshou/pipeline/shogun/ -o /k11e/pvdisk/fastbase/Users/wangjianshou/pipeline/shogun/output -t 20
+        shogun pipeline --no-function -a burst -i {{inputs.parameters.sample}} -d /k11e/pvdisk/fastbase/Users/wangjianshou/pipeline/shogun/ -o /k11e/pvdisk/fastbase/Users/wangjianshou/pipeline/shogun/output/{{inputs.parameters.outdir}}_shogun -t 20
       resources:
         requests:
-          CPU: 20
+          cpu: 20
           memory: 80Gi
         limits:
-          CPU: 25
+          cpu: 25
           memory: 100Gi
       volumeMounts:
         - name: gluster-volumes-user
