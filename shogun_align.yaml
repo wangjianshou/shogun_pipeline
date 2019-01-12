@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: shogun-pipeline-
+  generateName: shogun-align-
 spec:
   entrypoint: shogun-pipeline
   #onExit: exit-hander
@@ -81,7 +81,9 @@ spec:
         . /opt/miniconda/etc/profile.d/conda.sh
         conda activate shogun
         python -m unittest discover shogun
-        shogun pipeline --no-function -a burst -i {{inputs.parameters.sample}} -d {{workflow.parameters.database}} -o {{workflow.parameters.outdir}}/{{inputs.parameters.resultdir}}_shogun -t 20
+        shogun align -a burst -i {{inputs.parameters.sample}} -d {{workflow.parameters.database}} -o {{workflow.parameters.outdir}}/{{inputs.parameters.resultdir}}_shogun -t 20
+        shogun assign-taxonomy --no-capitalist -a burst -i {{workflow.parameters.outdir}}/{{inputs.parameters.resultdir}}_shogun/alignment.burst.b6 -d {{workflow.parameters.database}} -o {{workflow.parameters.outdir}}/{{inputs.parameters.resultdir}}_shogun/{{inputs.parameters.resultdir}}.taxonomy
+        shogun assign-taxonomy -a burst -i {{workflow.parameters.outdir}}/{{inputs.parameters.resultdir}}_shogun/alignment.burst.b6 -d {{workflow.parameters.database}} -o {{workflow.parameters.outdir}}/{{inputs.parameters.resultdir}}_shogun/{{inputs.parameters.resultdir}}.capitalist.taxonomy
       resources:
         requests:
           cpu: 20
